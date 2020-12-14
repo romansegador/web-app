@@ -46,8 +46,6 @@ describe('UserServicePact', () => {
 
   describe('get()', () => {
 
-    const userId = 1;
-
     const expectedBook: Book[] = [{
       title: 'Test Title',
       language: 'Language'
@@ -72,7 +70,7 @@ describe('UserServicePact', () => {
     });
 
     it('should get a user', async () => {
-      const booksService: BooksService = TestBed.get(BooksService);
+      const booksService: BooksService = TestBed.inject(BooksService);
 
       await booksService.getBooks().toPromise().then(response => {
         expect(response).toEqual(expectedBook);

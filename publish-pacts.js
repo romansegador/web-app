@@ -8,7 +8,7 @@ let pact = require('@pact-foundation/pact-node');
 let consumerVersion = require('child_process')
   .execSync('git rev-parse HEAD')
   .toString().trim();
-let pactBroker = 'http://ip172-18-0-32-bu22dl7p2ffg00blhnvg-9292.direct.labs.play-with-docker.com/';
+let pactBroker = 'http://ip172-18-0-54-bvbode1qckh000a2jmn0-9292.direct.labs.play-with-docker.com/';
 
 if(process.argv.length === 4) {
   consumerVersion = process.argv[2];

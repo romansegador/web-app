@@ -2,6 +2,6 @@
   "/api/books*": {
     "target": "http://localhost:32500",
     "secure": false,
-    "logLevel": "info"
+    "logLevel": "debug"
   }
 }
