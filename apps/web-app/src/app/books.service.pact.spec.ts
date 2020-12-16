@@ -69,7 +69,7 @@ describe('UserServicePact', () => {
       });
     });
 
-    it('should get a user', async () => {
+    it('should get a book', async () => {
       const booksService: BooksService = TestBed.inject(BooksService);
 
       await booksService.getBooks().toPromise().then(response => {
