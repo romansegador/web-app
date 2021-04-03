@@ -1,6 +1,6 @@
 {
   "/api/books*": {
-    "target": "http://localhost:32800",
+    "target": "http://books-service:32500",
     "secure": false,
     "change-origin": true,
     "logLevel": "debug"
