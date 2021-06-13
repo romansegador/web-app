@@ -1,0 +1,87 @@
+name: pipeline
+on:
+  push:
+  repository_dispatch:
+    types: [backend_automation]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '13'
+      - name: Install
+        run: npm install
+      - name: Test
+        run: npm test
+      - name: Publish Contracts
+        run: |
+          docker run --rm \
+           -w ${PWD} \
+           -v ${PWD}:${PWD} \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker publish ${PWD}/pacts \
+          --consumer-app-version ${GITHUB_SHA} \
+          --tag "Build"
+  deployToTest:
+    environment: Testing
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy to Test
+    steps:
+      - name: Can be deployed?
+        run: |
+          docker run --rm \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker can-i-deploy \
+          --pacticipant "web-app" \
+          --version ${GITHUB_SHA} \
+          --to "Testing"
+      - name: Deploy
+        run: echo 'Deploying to Production'
+      - name: Set Tag
+        run: |
+          docker run --rm \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker create-version-tag \
+          --pacticipant "web-app" \
+          --version ${GITHUB_SHA} \
+          --tag "Testing"
+
+  deployToProd:
+    if: github.event_name == 'push'
+    environment: Production
+    needs: deployToTest
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    steps:
+      - name: Can be deployed?
+        run: |
+          docker run --rm \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker can-i-deploy \
+          --pacticipant "web-app" \
+          --version ${GITHUB_SHA} \
+          --to "Production"
+      - name: set Tag
+        run: |
+          docker run --rm \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker create-version-tag \
+          --pacticipant "web-app" \
+          --version ${GITHUB_SHA} \
+          --tag "Production"

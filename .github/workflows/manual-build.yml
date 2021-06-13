@@ -1,0 +1,26 @@
+name: manual-build
+on: [workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '13'
+      - name: Install
+        run: npm install
+      - name: Test
+        run: npm test
+      - name: Publish Contracts
+        run: |
+          docker run --rm \
+           -w ${PWD} \
+           -v ${PWD}:${PWD} \
+           -e PACT_BROKER_BASE_URL=https://${{ secrets.PACT_HOST }} \
+           -e PACT_BROKER_TOKEN=${{ secrets.PACT_TOKEN }} \
+          pactfoundation/pact-cli:latest \
+          broker publish ${PWD}/pacts \
+          --consumer-app-version ${GITHUB_SHA} \
+          --tag "Build"
