@@ -31,9 +31,7 @@ jobs:
           --tag "Testing"
 
   deployToProd:
-    if: github.event_name == 'push'
     environment: Production
-    needs: deployToTest
     runs-on: ubuntu-latest
     name: Deploy to Production
     steps:
